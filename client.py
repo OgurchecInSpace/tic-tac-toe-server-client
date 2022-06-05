@@ -2,7 +2,7 @@
 import socket  # Импорт
 import asyncio
 
-server_ip = '26.160.84.169'  # '92.240.213.161'
+server_ip = '44.197.192.15'  # '92.240.213.161'
 
 print('Client has started')
 client = socket.socket()

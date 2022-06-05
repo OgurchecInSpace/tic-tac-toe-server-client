@@ -18,14 +18,7 @@ while running:
     data = conn.recv(1024)
     if data.decode("utf-8") == 'stop' or not data:
         running = False
-    print(f"Message from client {':'.join(map(str, addr))}: {data.decode('utf-8')}")
-
-    # Блок отправки данных
-    message = input("Message to client>>> ")
-    if message == 'stop' or not message:
-        conn.send('stop'.encode('utf-8'))
-        running = False
-    conn.send(f'{message}'.encode('utf-8'))
+    conn.send(data.decode("utf-8").upper().encode("utf-8"))
 
 conn.close()
 server.close()
