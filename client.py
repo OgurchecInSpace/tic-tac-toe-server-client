@@ -2,11 +2,11 @@
 import socket  # Импорт
 import asyncio
 
-server_ip = '44.197.192.15'  # '92.240.213.161'
+server_ip = '192.168.0.28'
 
 print('Client has started')
 client = socket.socket()
-client.connect((server_ip, 5000))
+client.connect((server_ip, 9091))
 client.send('Connection!'.encode('utf-8'))
 running = True
 

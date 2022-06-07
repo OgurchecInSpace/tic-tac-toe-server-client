@@ -1,16 +1,21 @@
 # Код сервера
 import socket  # Импорт
-from something import get_ip
 # from tkinter import *
 import asyncio
+from something import get_ip
 
-get_ip()
+print(get_ip())
+print(socket.gethostbyname_ex(socket.gethostname()))
+ip = socket.gethostbyname_ex(socket.gethostname())[-1][-1]
+port = 9091
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(('', 5000))
+
+server.bind((ip, 9091))
 server.listen(1)
 conn, addr = server.accept()
 print(f'Connected: {addr}')
-print('Server has started')
+print(f'Server has started on {ip}:{port}')
 running = True
 
 while running:
