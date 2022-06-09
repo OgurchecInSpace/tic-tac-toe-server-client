@@ -6,7 +6,7 @@ from something import get_ip
 
 print(get_ip())
 print(socket.gethostbyname_ex(socket.gethostname()))
-ip = socket.gethostbyname_ex(socket.gethostname())[-1][-1]
+ip = socket.gethostbyname_ex(socket.gethostname())
 port = 9091
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
