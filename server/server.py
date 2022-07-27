@@ -4,7 +4,7 @@ import socket
 import datetime
 import pickle
 from constants_server import *
-from something import *
+from server_something import *
 
 
 def get_now_time():  # Получение времени на данный момент в читаемом формате
@@ -18,7 +18,9 @@ def main():  # Главная функция
     print((socket.gethostbyname_ex(socket.gethostname()), server_port))
     print('====check server IP and server port on host site====')
 
-    members = dict()  # Список всех участников
+    members = dict()  # Словарь всех участников с их статусом
+    requests = dict()  # Словарь запросов на подключение
+    bunches = dict()  # Словарь всех подключений
 
     while True:
         msg, addr = server.recvfrom(message_size)  # Получение сообщения от отправителя и его адрес
@@ -27,35 +29,50 @@ def main():  # Главная функция
 
         if msg['command'] == 'set_mode':
             if msg['msg'] == 'online':
-                msg_to_user = message_pattern.copy()
-                msg_to_user['command'] = 'get_address'
-                msg_to_user['msg'] = addr
-                server.sendto(pickle.dumps(msg_to_user), addr)
+                server.sendto(pickle.dumps(create_message('get_address', addr,
+                                                          ('Server IP', 'server port'), addr)), addr)
+            elif msg['msg'] == 'offline' and addr in requests.keys():
+                del requests[addr]
+
             members[addr] = msg['msg']
-        elif msg['command'] == 'msg_to':         # Если команда - сообщение к кому-либо, то
-            if members[msg['to']] == 'online':   # Отправляем, если собеседник онлайн
-                server.sendto(pickle.dumps(msg), msg['to'])
-            else:                                # Если же нет, уведомляем об этом изначальный компьютер
-                msg = message_pattern.copy()
-                msg['command'] = 'alert'
-                msg['msg'] = 'Sorry, your companion is offline'
-                msg = pickle.dumps(msg)
-                server.sendto(msg, addr)
-        elif msg['command'] == 'connect_to':    # Если команда - подключение к кому-либо, то
-            if members[msg['to']] == 'online':  # Подключаем, если собеседник онлайн
-                server.sendto(pickle.dumps(msg), msg['to'])
-            else:                               # Если же нет, уведомляем об этом изначальный компьютер
-                msg = message_pattern.copy()
-                msg['command'] = 'alert'
-                msg['msg'] = 'Sorry, your companion is offline'
-                msg = pickle.dumps(msg)
-                server.sendto(msg, addr)
-        else:                                   # Если команда не найдена, уведомляем об этом изначальный компьютер
-            msg = message_pattern.copy()
-            msg['command'] = 'alert'
-            msg['msg'] = 'Not found command'
-            msg = pickle.dumps(msg)
-            server.sendto(msg, addr)
+
+        elif msg['command'] == 'connect_to':
+            if msg['msg'] in members.keys() and members[msg['msg']] == 'online':
+                requests[addr] = msg['msg']
+            else:
+                server.sendto(
+                    pickle.dumps(create_message('alert', 'Interlocutor is offline', (server_ip, server_port), addr)),
+                    addr
+                )
+
+        # Если сообщение - сообщение о ходе, то просто переадресуем его тому, кто указан как получатель
+        elif msg['command'] == 'msg_to':
+            server.sendto(pickle.dumps(msg), msg['receiver'])
+
+        # Проходимся по всем запросам
+        for member in requests.keys():
+            # Если запрашиваемый пользователь запрашивал кого-то
+            # И если запрашиваемый запрашиваемым - изначально запросивший,
+            # То соединяем их
+            if requests[member] in requests.keys() and \
+                    requests[requests[member]] == member:
+                bunches[member] = requests[member]  # Связываем
+                bunches[requests[member]] = member
+                buffer_address = requests[member]
+                del requests[member]  # Удаляем их из запросов
+                del requests[buffer_address]
+
+                # Уведомляем оба клиента о подключении
+                server.sendto(pickle.dumps(
+                    create_message('connecting', (buffer_address, 'crosses'), (server_ip, server_port), member)),
+                    member
+                )
+                server.sendto(pickle.dumps(
+                    create_message('connecting', (member, 'zeros'), (server_ip, server_port), buffer_address)),
+                    buffer_address
+                )
+
+                break
 
 
 if __name__ == '__main__':
