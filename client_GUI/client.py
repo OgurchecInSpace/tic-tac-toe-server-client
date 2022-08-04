@@ -42,6 +42,21 @@ from PyQt6.QtGui import (
 
 
 # Тут наверняка будут ещё библиотеки, надо только подождать
+# Upd. 28.07.22 Судя по всему, ещё библиотек не будет
+
+# Класс уведомления о победе
+class WinAlert(QWidget):
+    def __init__(self, main_window):
+        super(WinAlert, self).__init__()
+        self.main_window = main_window
+
+        self.setWindowTitle('Win!')
+        self.move(self.main_window.x(), self.main_window.y())
+        self.setFixedSize(600, 200)
+
+        self.alert_txt = QLabel(self)
+        self.alert_txt.setText('You won, congratulations!')
+        self.alert_txt.move(self.width() // 2 - self.alert_txt.width() // 2, self.height() // 2)
 
 
 # Класс для коммуникации потока прослушивания сервера и основного потока (графического)
@@ -57,51 +72,47 @@ class TTTWindow(QMainWindow):
         super().__init__()
         self.main_window = main_window
 
-        # Создаём кнопки и потом
+        # self.image_end_game = QLabel(self)
+
+        # Создаём кнопки
+        self.game_buttons = [QPushButton(self) for _ in range(9)]
+        # И словари для нажатых нами кнопок и кнопок, нажатых оппонентом
+        self.my_buttons = {}
+        self.opponent_buttons = {}
+        # Задаём кнопкам размер
+        list(map(lambda ttt_button: ttt_button.setFixedSize(100, 100), self.game_buttons))
         # проходимся по всем кнопкам игры и подключаем нажатие на них к функции,
         # которая возвращает отработавшую функцию нажатия
-
-        self.game_buttons = [QPushButton(self) for _ in range(9)]
-        list(map(lambda ttt_button: ttt_button.setFixedSize(100, 100), self.game_buttons))
-        self.layout = QGridLayout(self)
         list(map(
             lambda ttt_button:
             ttt_button.clicked.connect(lambda checked, button=ttt_button: self.clicked_button(button)),
             self.game_buttons))
+        # Превращаем список с кнопками в словарь, номер кнопки: кнопка
         self.game_buttons = dict(enumerate(self.game_buttons, start=1))
+        # Сетка для удобного размещения кнопок и виджет, который её отображает
+        self.buttons_widget = QWidget(self)
+        self.layout = QGridLayout(self.buttons_widget)
+        self.layout.setSpacing(0)
         for index, btn in self.game_buttons.items():
             self.layout.addWidget(btn, (index - 1) // 3 + 1, (index - 1) % 3 + 1)
-        self.my_buttons = {}
-        self.opponent_buttons = {}
-
-        # Расставляем кнопки
-        self.button_x = 100
-        self.button_y = 100
-        # Расстановка кнопок в окне
-        self.buttons_widget = QWidget(self)
         self.buttons_widget.setLayout(self.layout)
-        self.buttons_widget.setGeometry(10, 10, 900, 900)
-        # for index, button in list(self.game_buttons.items())[:3]:
-        #     button.setGeometry(self.button_x * index + index * 10, self.button_y, 100, 100)
-        # for index, button in list(self.game_buttons.items())[3:6]:
-        #     button.setGeometry(self.button_x * (index - 3) + (index - 3) * 10, self.button_y + 110, 100, 100)
-        # for index, button in list(self.game_buttons.items())[6:]:
-        #     button.setGeometry(self.button_x * (index - 6) + (index - 6) * 10, self.button_y + 220, 100, 100)
+        self.buttons_widget.setGeometry(int(self.width() // 5.5), int(self.height() // 7), 400, 400)
 
         # Картинка и текст команды игрока
         self.team_text = QLabel(self)
         self.team_text.setText('You')
-        self.team_text.setGeometry(self.width() // 2, int(self.height() // 1.1), 50, 30)
+        self.team_text.setGeometry(self.width() // 2, int(self.height() // 1.1), 20, 10)
 
         self.team_image = QLabel(self)
         self.images = {'crosses': r'other_files\Крестик.png',
                        'zeros': r'other_files\Нолик.png'}
 
-        # self.team_image.setPixmap(QPixmap(r'other_files\Крестик.png'))
+        # self.team_image.setPixmap(QPixmap(r'other_files\Крестик.png'))  # Для тестирования
         self.team_image.setPixmap(QPixmap(self.images.get(self.main_window.team, '')))
-        self.team_image.setGeometry(self.width() // 2, int(self.height() // 1.1) + 50, 100, 100)
+        self.team_image.setGeometry(self.width() // 2, int(self.height() // 1.1) + 50, 50, 50)
         self.team_image.setScaledContents(True)
 
+    # Функция нажатия на кнопку игры
     def clicked_button(self, button):
         inverted_game_buttons = {btn: index for index, btn in self.game_buttons.copy().items()}
         team = ''
@@ -130,22 +141,61 @@ class TTTWindow(QMainWindow):
         # Проверяем, не закончилась ли игра чье-либо победой
         if self.main_window.is_win(self.my_buttons, self.opponent_buttons) is not None:
             if self.main_window.is_win(self.my_buttons, self.opponent_buttons) == True:
-                alert = QMessageBox(self)
-                alert.setWindowTitle('You won!')
-                alert.setText('You are the best!\n')
-                alert.setIcon(QMessageBox.Icon.Information)
-                alert.setFixedSize(QSize(200, 200))
-                alert.show()
+                self.preparation_end_game('win_image')
+
             elif self.main_window.is_win(self.my_buttons, self.opponent_buttons) == False:
-                alert = QMessageBox(self)
-                alert.setWindowTitle('You are defeated!')
-                alert.setText('You are the best!\n')
-                alert.setIcon(QMessageBox.Icon.Information)
-                alert.setFixedSize(QSize(200, 200))
-                alert.show()
-            self.main_window.tab.removeTab(2)
-            self.main_window.tab.addTab(TTTWindow(self), 'TTT Window')
-            self.main_window.tab.setCurrentIndex(0)
+                self.preparation_end_game('defeat_image')
+
+        if len(self.game_buttons.keys()) == 0:
+            self.preparation_end_game('tie_image')
+
+    # Функция подготовки почвы для конца игры
+    def preparation_end_game(self, image):
+        # Картинка окончания игры
+        self.image_end_game = QLabel(self)
+        self.image_end_game.setPixmap(QPixmap(fr'other_files\{image}.png'))
+        self.image_end_game.setGeometry(self.width() // 2 - 250, self.height() // 2 - 250, 500, 500)
+        self.image_end_game.show()
+
+        # Кнопка окончания игры
+        self.button_end = QPushButton(self)
+        self.button_end.setText('End game')
+        self.button_end.setGeometry(0, 0, 80, 80)
+        self.button_end.show()
+        self.button_end.clicked.connect(self.end_game)
+
+    # Функция конца игры
+    def end_game(self):
+        self.main_window.tab.removeTab(2)
+        self.main_window.tab.addTab(TTTWindow(self.main_window), 'TTT Window')
+        self.main_window.tab.setCurrentIndex(0)
+
+    def resizeEvent(self, event: QResizeEvent):
+        # Кнопки
+        self.buttons_widget.setGeometry(
+            self.width() // 2 - self.buttons_widget.width() // 2,
+            self.height() // 2 - self.buttons_widget.height() // 2,
+            400,
+            400)
+        # Подпись к картинке команды
+        self.team_text.setGeometry(
+            self.width() // 2 - self.team_text.width() // 2,
+            self.buttons_widget.y() + self.buttons_widget.height() - 30,
+            20,
+            30
+        )
+        # Картинка команды
+        self.team_image.setGeometry(
+            self.width() // 2 - self.team_image.width() // 2,
+            self.buttons_widget.y() + self.buttons_widget.height() + self.team_text.height() - 40,
+            50,
+            50
+        )
+
+        try:
+            self.image_end_game.setGeometry(int(self.width() // 2) - 250, self.height() // 2 - 250, 500, 500)
+        except:
+            pass
 
 
 # Класс вкладки ожидания
@@ -196,21 +246,22 @@ class ConnectWindow(QMainWindow):
         self.button_connect = QPushButton(self)
         self.button_connect.setText('Connect!')
         self.button_connect.setGeometry(
-            100,
-            340,
-            120,
-            50
+            self.width() // 2 - 120 // 2, self.height() // 2, 220, 50
         )
         self.button_connect.clicked.connect(self.connect)
 
+        # Текст с информацией о том, что надо вводить в поле для ввода адреса
+        self.caption_address_line = QLabel('Requesting address in format "IP:Port"', self)
+        self.caption_address_line.setGeometry(
+            self.width() // 2, self.height() // 2 + self.button_connect.height(), 200, 30
+        )
+
         # Поле ввода адреса
         self.address_line = QLineEdit(self)
-        self.address_line.setFixedSize(QSize(220, 50))
-        self.address_line.move(250, 340)
-        # >>> Текст с информацией о том, что надо вводить в поле для ввода адреса
-        self.caption_address_line = QLabel('Requesting address in format "IP:Port"', self)
-        self.caption_address_line.setFixedSize(QSize(200, 30))
-        self.caption_address_line.move(250, 300)
+        self.address_line.setGeometry(
+            self.width() // 2 - 220 // 2,
+            self.height() // 2 + self.button_connect.height() + self.caption_address_line.height(), 220, 50
+        )
 
     def connect(self):
         address = self.address_line.text()
@@ -237,6 +288,31 @@ class ConnectWindow(QMainWindow):
             alert.setIcon(QMessageBox.Icon.Critical)
             alert.show()
 
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        # Изменяем положение текста
+        self.caption_address_line.setGeometry(
+            self.width() // 2 - self.caption_address_line.width() // 2,
+            self.height() // 2,
+            200,
+            30
+        )
+
+        # поля ввода адреса
+        self.address_line.setGeometry(
+            self.width() // 2 - self.address_line.width() // 2,
+            self.height() // 2 + self.caption_address_line.height(),
+            220,
+            50
+        )
+
+        # И кнопки
+        self.button_connect.setGeometry(
+            self.width() // 2 - self.button_connect.width() // 2,
+            self.height() // 2 + self.caption_address_line.height() + self.address_line.height() + 5,
+            220,
+            50
+        )
+
 
 # Класс интерфейса
 class MainWindow(QMainWindow):
@@ -246,8 +322,8 @@ class MainWindow(QMainWindow):
         print('Start app')
 
         # Начальная настройка
-        self.setWindowTitle('Название съели')
-        self.setMinimumSize(QSize(650, 480))
+        self.setWindowTitle('Tic-Tac-Toe Online')
+        self.setMinimumSize(QSize(650, 540))
         self.move(500, 220)
 
         # Объект для коммуникации основного потока (графического) с потоком прослушивания сервера
@@ -329,26 +405,16 @@ class MainWindow(QMainWindow):
                 del game.game_buttons[index]
 
         # Проверяем, не закончилась ли игра чье-либо победой
+        game = self.tab.currentWidget()
         if self.is_win(game.my_buttons, game.opponent_buttons) is not None:
             if self.is_win(game.my_buttons, game.opponent_buttons) == True:
-                alert = QMessageBox(self)
-                alert.setWindowTitle('You won!')
-                alert.setText('You are the best!\n')
-                alert.setIcon(QMessageBox.Icon.Information)
-                alert.setFixedSize(QSize(200, 200))
-                alert.show()
+                game.preparation_end_game('win_image')
+
             elif self.is_win(game.my_buttons, game.opponent_buttons) == False:
-                alert = QMessageBox(self)
-                alert.setWindowTitle('You are defeated!')
-                alert.setText('You are the best!\n')
-                alert.setIcon(QMessageBox.Icon.Information)
-                alert.setFixedSize(QSize(200, 200))
-                alert.show()
-            self.tab.removeTab(2)
-            self.tab.addTab(TTTWindow(self), 'TTT Window')
-            self.tab.setCurrentIndex(0)
+                game.preparation_end_game('defeat_image')
 
-
+        if len(game.game_buttons.keys()) == 0:
+            game.preparation_end_game('tie_image')
 
     # Слушаем сервер
     def listen(self):
@@ -383,7 +449,7 @@ class MainWindow(QMainWindow):
             0,
             0,
             self.size().width(),
-            self.size().height() - 20
+            self.size().height() + 50
         )
 
         # Изменение положения строки адреса и кнопки копирования
