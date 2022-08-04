@@ -1,7 +1,7 @@
 # Сборщик программы
 from cx_Freeze import Executable, setup
 
-executables = [Executable('client.py', base='Win32GUI')]
+executables = [Executable('client.py', base='Win32GUI', targetName='Client-TicTacToe')]
 
 # Библиотеки и т.д., которые не надо ставит
 excludes = ['html', 'http', 'email', 'multiprocessing', 'unittest',
@@ -23,12 +23,13 @@ options = {
         # 'excludes': excludes,
         'zip_include_packages': zip_include_packages,
         'include_files': include_files,
+        'build_exe': 'build_windows'
     }
 }
 
 
 setup(name='Client tic-tac-toe online',
-      version='0.0.1',
+      version='1.0.0',
       description='Client tic-tac-toe online, haha',
       executables=executables,
       options=options)
