@@ -44,20 +44,6 @@ from PyQt6.QtGui import (
 # Тут наверняка будут ещё библиотеки, надо только подождать
 # Upd. 28.07.22 Судя по всему, ещё библиотек не будет
 
-# Класс уведомления о победе
-class WinAlert(QWidget):
-    def __init__(self, main_window):
-        super(WinAlert, self).__init__()
-        self.main_window = main_window
-
-        self.setWindowTitle('Win!')
-        self.move(self.main_window.x(), self.main_window.y())
-        self.setFixedSize(600, 200)
-
-        self.alert_txt = QLabel(self)
-        self.alert_txt.setText('You won, congratulations!')
-        self.alert_txt.move(self.width() // 2 - self.alert_txt.width() // 2, self.height() // 2)
-
 
 # Класс для коммуникации потока прослушивания сервера и основного потока (графического)
 class Communicate(QObject):
@@ -145,9 +131,9 @@ class TTTWindow(QMainWindow):
 
             elif self.main_window.is_win(self.my_buttons, self.opponent_buttons) == False:
                 self.preparation_end_game('defeat_image')
-
-        if len(self.game_buttons.keys()) == 0:
-            self.preparation_end_game('tie_image')
+        else:
+            if len(self.game_buttons.keys()) == 0:
+                self.preparation_end_game('tie_image')
 
     # Функция подготовки почвы для конца игры
     def preparation_end_game(self, image):
@@ -412,9 +398,9 @@ class MainWindow(QMainWindow):
 
             elif self.is_win(game.my_buttons, game.opponent_buttons) == False:
                 game.preparation_end_game('defeat_image')
-
-        if len(game.game_buttons.keys()) == 0:
-            game.preparation_end_game('tie_image')
+        else:
+            if len(game.game_buttons.keys()) == 0:
+                game.preparation_end_game('tie_image')
 
     # Слушаем сервер
     def listen(self):
