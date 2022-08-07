@@ -9,6 +9,6 @@ Python 3.10
 
 Ссылка на собранное приложение:
 * для windows10 - https://disk.yandex.ru/d/Fg3Bik0348JllQ
-* для windows7 - https://disk.yandex.ru/d/eU0LF-vC-Oe4hg
+* для windows7 - https://disk.yandex.ru/d/eXYmMquhlHAaYA
 
 # Discord: Jagor#6537
