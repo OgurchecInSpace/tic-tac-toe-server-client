@@ -14,9 +14,8 @@ def get_now_time():  # Получение времени на данный мо�
 
 def main():  # Главная функция
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server.bind((socket.gethostbyname_ex(socket.gethostname())[-1][-1], server_port))
+    server.bind((socket.gethostbyname_ex(socket.gethostname())[-1][0], server_port))
     print((socket.gethostbyname_ex(socket.gethostname()), server_port))
-    print('====check server IP and server port on host site====')
 
     members = dict()  # Словарь всех участников с их статусом
     requests = dict()  # Словарь запросов на подключение

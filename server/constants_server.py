@@ -1,4 +1,4 @@
-server_ip = '217.28.220.129'  # Тут IP хоста
+server_ip = 'localhost'  # Тут IP хоста
 server_port = 9091  # Тут порт хоста
 message_size = 4096
 

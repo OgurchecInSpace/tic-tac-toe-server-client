@@ -1,11 +1,12 @@
-server_ip = '217.28.220.129'  # Тут IP хоста
-server_port = 33283  # Тут порт хоста
+server_ip = '192.168.56.1'  # Тут IP хоста
+server_port = 9091  # Тут порт хоста
 message_size = 4096
 
 message_pattern = {
     'command': '',
     'msg': '',
     'sender': ('ip', 'port'),
+
     'receiver': ('ip', 'port')
 }
 

@@ -6,9 +6,10 @@ executables = [Executable('client.py', base='Win32GUI', targetName='Client-TicTa
 # Библиотеки и т.д., которые не надо ставит
 excludes = ['html', 'http', 'email', 'multiprocessing', 'unittest',
             'logging', 'urllib', 'argparse', 'webbrowser', 'warnings',
-            'decimal', 'audioop', 'csv', 'tkinter', 'xml'
+            'decimal', 'audioop', 'csv', 'xml', 'email', 'html', 'http',
             'fractions', 'cmath', 'statistics', 'zlib', 'gzip', 'zipfile',
-            'tarfile', 'pydoc_data', 'calendar', 'copy']
+            'tarfile', 'pydoc_data', 'calendar', 'copy', 'multipoccessing',
+            'lib2to3', 'concurrent', 'urllib`']
 
 # Библиотеки, которые надо в архив
 zip_include_packages = ['collections', 'encodings', 'importlib', 'socket', 'threading', 'tkinter']
